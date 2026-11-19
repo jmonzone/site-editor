@@ -1,6 +1,6 @@
 {
   "name": "@jmonzone/site-editor",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Visual block editor for my Next.js sites: select, add, delete, reorder and edit content on the page, then publish it to git.",
   "license": "MIT",
   "type": "module",
