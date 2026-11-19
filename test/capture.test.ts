@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { aspectRatioFor, firstFontFamily } from "../src/client/canvas/svg.js";
+import { firstFontFamily, placeImage } from "../src/client/canvas/svg.js";
 import { readEnv, type EditorEnv } from "../src/server/env.js";
 import { createEditorRoutes } from "../src/server/routes.js";
 import { raw, site } from "./fixtures.js";
@@ -39,13 +39,25 @@ describe("firstFontFamily", () => {
   });
 });
 
-describe("aspectRatioFor", () => {
-  it("draws images the way their object-fit and object-position do", () => {
-    expect(aspectRatioFor("cover", "50% 50%")).toBe("xMidYMid slice");
-    expect(aspectRatioFor("cover", "50% 0%")).toBe("xMidYMin slice");
-    expect(aspectRatioFor("cover", "100% 100%")).toBe("xMaxYMax slice");
-    expect(aspectRatioFor("cover", "0px 0px")).toBe("xMinYMin slice");
-    expect(aspectRatioFor("contain", "50% 50%")).toBe("xMidYMid meet");
-    expect(aspectRatioFor("fill", "50% 50%")).toBe("none");
+describe("placeImage", () => {
+  // A nearly square photo in a 4:5 frame, like a portrait in a hero.
+  const photo = { width: 2000, height: 2000 };
+  const frame = { width: 200, height: 250 };
+
+  it("covers the frame, cropping the sides around the object-position", () => {
+    expect(placeImage("cover", "50% 50%", photo, frame)).toEqual({ x: -25, y: 0, width: 250, height: 250 });
+    expect(placeImage("cover", "0% 50%", photo, frame)).toEqual({ x: 0, y: 0, width: 250, height: 250 });
+    expect(placeImage("cover", "100% 50%", photo, frame)).toEqual({ x: -50, y: 0, width: 250, height: 250 });
+    expect(placeImage("cover", "-10px 0px", photo, frame)).toEqual({ x: -10, y: 0, width: 250, height: 250 });
+  });
+
+  it("fits the whole image for contain and scale-down", () => {
+    expect(placeImage("contain", "50% 50%", photo, frame)).toEqual({ x: 0, y: 25, width: 200, height: 200 });
+    expect(placeImage("scale-down", "50% 50%", { width: 100, height: 100 }, frame)).toEqual({ x: 50, y: 75, width: 100, height: 100 });
+  });
+
+  it("stretches for fill and keeps natural size for none", () => {
+    expect(placeImage("fill", "50% 50%", photo, frame)).toEqual({ x: 0, y: 0, width: 200, height: 250 });
+    expect(placeImage("none", "50% 50%", { width: 100, height: 100 }, frame)).toEqual({ x: 50, y: 75, width: 100, height: 100 });
   });
 });
