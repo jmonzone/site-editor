@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { firstFontFamily } from "../src/client/canvas/svg.js";
+import { aspectRatioFor, firstFontFamily } from "../src/client/canvas/svg.js";
 import { readEnv, type EditorEnv } from "../src/server/env.js";
 import { createEditorRoutes } from "../src/server/routes.js";
 import { raw, site } from "./fixtures.js";
@@ -36,5 +36,16 @@ describe("firstFontFamily", () => {
     expect(firstFontFamily('Inter, "Inter Fallback"')).toBe("Inter");
     expect(firstFontFamily('"Source Serif 4", "Source Serif 4 Fallback"')).toBe("Source Serif 4");
     expect(firstFontFamily("Georgia")).toBe("Georgia");
+  });
+});
+
+describe("aspectRatioFor", () => {
+  it("draws images the way their object-fit and object-position do", () => {
+    expect(aspectRatioFor("cover", "50% 50%")).toBe("xMidYMid slice");
+    expect(aspectRatioFor("cover", "50% 0%")).toBe("xMidYMin slice");
+    expect(aspectRatioFor("cover", "100% 100%")).toBe("xMaxYMax slice");
+    expect(aspectRatioFor("cover", "0px 0px")).toBe("xMinYMin slice");
+    expect(aspectRatioFor("contain", "50% 50%")).toBe("xMidYMid meet");
+    expect(aspectRatioFor("fill", "50% 50%")).toBe("none");
   });
 });
